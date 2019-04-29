@@ -2,53 +2,31 @@ kind: pipeline
 name: default
 
 steps:
-- name: restore
-  image: plugins/s3-cache
-  settings:
-    pull: true
-    endpoint: http://srv-minio:9000
-    access_key: 
-      from_secret: s3_access_key
-    secret_key: 
-      from_secret: s3_secret_key
-    restore: true
+- name: restore-cache
+  image: drillster/drone-volume-cache
+  restore: true
+  mount:
+    - node_modules
+  volumes:
+    - /tmp/cache:/cache
 
 - name: install
   image: node
   commands:
   - npm install
 
-- name: rebuild
-  image: plugins/s3-cache
-  settings:
-    pull: true
-    endpoint: http://srv-minio:9000
-    access_key: 
-      from_secret: s3_access_key
-    secret_key: 
-      from_secret: s3_secret_key
-    rebuild: true
-    mount:
-      - node_modules
-    when:
-      event: push
+- name: rebuild-cache
+  image: drillster/drone-volume-cache
+  rebuild: true
+  mount:
+    - node_modules
+  volumes:
+    - /tmp/cache:/cache
 
 - name: test
   image: node
   commands:
   - npm test
-
-- name: flush
-  image: plugins/s3-cache:1
-  settings:
-    pull: true
-    endpoint: http://srv-minio:9000
-    access_key: 
-      from_secret: s3_access_key
-    secret_key: 
-      from_secret: s3_secret_key
-    flush: true
-    flush_age: 14
 
 - name: upload
   image: plugins/s3
