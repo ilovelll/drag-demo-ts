@@ -16,9 +16,11 @@ steps:
   image: plugins/s3
   settings:
     bucket: static
-    # access_key: 
-    # secret_key: 
+    access_key: 
+      from_secret: s3_access_key
+    secret_key: 
+      from_secret: s3_secret_key
     source: public/**/*
-    target: /react
+    target: /
     path_style: true
     endpoint: https://minio.leble.ink
