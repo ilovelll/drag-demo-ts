@@ -2,15 +2,53 @@ kind: pipeline
 name: default
 
 steps:
-- name: frontend
+- name: restore
+  image: plugins/s3-cache
+  settings:
+    pull: true
+    endpoint: https://minio.leble.ink
+    access_key: 
+      from_secret: s3_access_key
+    secret_key: 
+      from_secret: s3_secret_key
+    restore: true
+
+- name: install
   image: node
   commands:
   - npm install
-  - npm test
-  when:
-    branch:
-    - ci
 
+- name: rebuild
+  image: plugins/s3-cache
+  settings:
+    pull: true
+    endpoint: https://minio.leble.ink
+    access_key: 
+      from_secret: s3_access_key
+    secret_key: 
+      from_secret: s3_secret_key
+    rebuild: true
+    mount:
+      - node_modules
+    when:
+      event: push
+
+- name: test
+  image: node
+  commands:
+  - npm test
+
+- name: flush
+  image: plugins/s3-cache:1
+  settings:
+    pull: true
+    endpoint: https://minio.leble.ink
+    access_key: 
+      from_secret: s3_access_key
+    secret_key: 
+      from_secret: s3_secret_key
+    flush: true
+    flush_age: 14
 
 - name: upload
   image: plugins/s3
