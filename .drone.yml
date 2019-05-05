@@ -23,4 +23,4 @@ steps:
     source: public/**/*
     target: /
     path_style: true
-    endpoint: http://srv-minio:9000
+    endpoint: srv-minio:9000
